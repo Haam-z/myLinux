@@ -1,0 +1,230 @@
+#+title: Install
+#+PROPERTY: header-args :tangle ./install.sh
+* saying wellcome
+#+begin_src shell :tangle yes
+#!/bin/env bash
+set -e
+echo "Welcome!" && sleep 2
+if [ -d ~/tempo ]; then
+    rm -fr ~/tempo
+    mkdir ~/tempo
+else
+    mkdir ~/tempo
+fi
+echo "###########################################################################"
+echo "Will do stuff, get ready"
+echo "###########################################################################"
+echo "Doing a system update, cause stuff may break if it's not the latest version..."
+DE=()
+install_dmenu=$flase
+clear
+#+end_src
+* setting pkgs arrys
+** desktop
+*** pacman
+#+begin_src shell :tangle yes
+WM=("feh" "picom" "xmonad" "polybar")
+RUNLANCHER=("clipmenu" "j4-dmenu-desktop")
+MULTIMEDIA=("vlc" "youtube-dl")
+OFFICE=("libreoffice-fresh" "hunspell")
+TERMINAL=("alacritty" "fish")
+EDITORS=("emacs" "neovim")
+BROWSER=("librewolf")
+FILEMANAGERS=("nemo")
+#+end_src
+** utilites
+*** pacman
+#+begin_src shell :tangle yes
+GIT=("git")
+COREUTILES=("exa" "bat" "ripgrep")
+#+end_src
+* installing my Packges
+** chosing the packges
+*** desktop
+#+begin_src shell :tangle yes
+PKGS_Desktop=("Window_Manager" "Run_Lancher" "Multimedia" "Office" "Terminal" "Editors" "Downleader" "File_Manager" "Web_Browser" "Login_Manager" "All" "Finished")
+select choice in ${PKGS_Desktop[@]}
+do
+  case $choice in
+    Window_Manager)
+      DE+=("${WM[@]}")
+      echo "$choice, got it. Any others?"
+      ;;
+    Run_Lancher)
+      DE+=("${RUNLANCHER[@]}")
+      install_dmenu=$true
+      echo "$choice, got it. Any others?"
+      ;;
+    Multimedia)
+      DE+=("${MULTIMEDIA[@]}")
+      echo "$choice, got it. Any others?"
+      ;;
+    Office)
+      DE+=("${OFFICE[@]}")
+      echo "$choice, got it. Any others?"
+      ;;
+    Terminal)
+      DE+=("${TERMINAL[@]}")
+      echo "$choice, got it. Any others?"
+      ;;
+    Editors)
+      DE+=("${EDITORS[@]}")
+      echo "$choice, got it. Any others?"
+      ;;
+    Downleader)
+      DE+=("${DOWNLOADER[@]}")
+      echo "$choice, got it. Any others?"
+      ;;
+    File_Manager)
+      DE+=("${FILEMANAGERS[@]}")
+      echo "$choice, got it. Any others?"
+      ;;
+    Web_Browser)
+      DE+=("${BROWSERR[@]}")
+      echo "$choice, got it. Any others?"
+      ;;
+    Login_Manager)
+      DE+=("${FILEMANAGERS[@]}")
+      echo "$choice, got it. Any others?"
+      ;;
+    All)
+      DE+=("${WM[@]}")
+      DE+=("${RUNLANCHER[@]}")
+      install_dmenu=$true
+      DE+=("${MULTIMEDIA[@]}")
+      DE+=("${EDITORS[@]}")
+      DE+=("${TERMINAL[@]}")
+      DE+=("${DOWNLOADER[@]}")
+      DE+=("${FILEMANAGERS[@]}")
+        break
+        ;;
+    Finished)
+        break
+        ;;
+    *)
+      echo "Invalid option $REPLY"
+      ;;
+  esac
+done
+clear
+#+end_src
+*** Utilites
+#+begin_src shell :tangle yes
+PKGS_Utilites=("Git" "CoreUtiles" "All" "Finished")
+select choice in ${PKGS_Utilites[@]}
+do
+  case $choice in
+  Git)
+  DE+=("${GIT[@]}")
+  echo "$choice, got it. Any others?"
+   ;;
+  CoreUtiles)
+  DE+=("${COREUTILES[@]}")
+  echo "$choice, got it. Any others?"
+   ;;
+  All)
+  DE+=("${GIT[@]}")
+  DE+=("${COREUTILES[@]}")
+  break
+   ;;
+  Finished)
+   break
+   ;;
+  *)
+      echo "Invalid option $REPLY"
+      ;;
+  esac
+done
+clear
+#+end_src
+*** Theming
+#+begin_src shell :tangle yes
+PKGS_Theming=("Application" "Theme" "Icons" "Cursor " "All" "Finished")
+select choice in ${PKGS_Theming[@]}
+do
+  case $choice in
+  Application)
+    DE+=("${THEMEING_APP[@]}")
+    DE_AUR+=("${THEMEING_APP_AUR[@]}")
+    echo "$choice, got it. Any others?"
+    ;;
+  Themes)
+    DE_AUR+=("${THEME_AUR[@]}")
+    echo "$choice, got it. Any others?"
+   ;;
+   Icons)
+    DE_AUR+=("${ICONS_AUR[@]}")
+    echo "$choice, got it. Any others?"
+    ;;
+   Cursor)
+    DE_AUR+=("${CURSOR_AUR[@]}")
+    echo "$choice, got it. Any others?"
+    ;;
+   All)
+    DE+=("${THEMEING_APP[@]}")
+    DE_AUR+=("${THEMEING_APP_AUR[@]}")
+    DE_AUR+=("${THEME_AUR[@]}")
+    DE_AUR+=("${ICONS_AUR[@]}")
+    DE_AUR+=("${CURSOR_AUR[@]}")
+    break
+    ;;
+   Finished)
+    break
+    ;;
+   *)
+    echo "Invalid option $REPLY"
+    ;;
+  esac
+done
+clear
+#+end_src
+** installing the packges
+#+begin_src shell :tangle yes
+# enabling the rpm Fusion repository
+sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm -y
+sudo rpm --import https://keys.openpgp.org/vks/v1/by-fingerprint/034F7776EF5E0C613D2F7934D29FBD5F93C0CFC3
+
+sudo dnf config-manager --add-repo https://rpm.librewolf.net
+ echo ${DE[@]}
+#sudo dnf install ${DE[@]} -y
+
+if $install_dmenu
+  then
+       git clone https://github.com/Haam-z/Dmenu.git ~/tempo/dmenu
+       cd ~/tempo/dmenu
+       sudo make install clean
+       cd ~
+fi
+clear
+#+end_src
+
+#+RESULTS:
+
+* installing my config
+#+begin_src shell :tangle yes
+
+git clone --bare https://github.com/Haam-z/DotFiles.git ~/Documents/bare-repo/Dotfiles
+git --git-dir=$HOME/Documents/bare-repo/DotFiles --work-tree=$HOME checkout -f
+
+cd ~
+#+end_src
+* installing my fonts
+#+begin_src shell :tangle yes
+read -r -p "do you want to install fonts 1)no 2)yes (default no): " vf
+case $vf in
+[1])
+sleep 5s
+;;
+[2])
+echo"installing you fonts you will wait a litel bit"
+git clone https://gitlab.com/haamz/fonts.git ~/tempo/fonts
+sudo cp ~/tempo/fonts/* /usr/share/fonts/
+sleep 5s
+;;
+[*])
+sleep 5s
+;;
+esac
+#+end_src
+
+#+RESULTS:

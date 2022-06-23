@@ -1,0 +1,3 @@
+#+TITLE: My linux install script
+#+DESCRIPTION: a simple script to setup linux gui with my own dotfiles
+a simple script to setup linux gui with my own dotfiles
