@@ -12,20 +12,71 @@ echo "Will do stuff, get ready"
 echo "###########################################################################"
 echo "Doing a system update, cause stuff may break if it's not the latest version..."
 DE=()
+DE_AUR=()
 install_dmenu=$flase
+SERVS=()
+sudo pacman --noconfirm -Syu
 clear
 
-WM=("feh" "picom" "xmonad" "polybar")
-RUNLANCHER=("clipmenu" "j4-dmenu-desktop")
-MULTIMEDIA=("vlc" "youtube-dl")
-OFFICE=("libreoffice-fresh" "hunspell")
+SOUND=( "pipewire" "pipewire-alsa" "pipewire-jack" "pipewire-media-session" "pipewire-pulse" "alsa-utils" "alsa-plugins" "alsa-lib" "alsa-firmware" "gstreamer" "gst-plugins-good" "gst-plugins-bad" "gst-plugins-base" "gst-plugins-ugly" "volumeicon" "playerctl")
+SOUND_SERVS=("pipewire-pulse.service")
+PRINTING=("cups" "cups-pdf" "cups-filters" "hplip" "libcups")
+PRINTING_SERVS=("cups.service")
+BLEUTOOTH=("bluez" "bluez-libs" "bluez-utils" "blueberry")
+BLEUTOOTH_SERVS=("bluetooth.service")
+LAPTOP=("tlp" "powerdevil")
+LAPTOP_SERVS=("tlp.service")
+SAMBA=("samba" "gvfs-smb")
+SAMBA_SERVS=("smb.service" "nmb.service")
+BACKLIGHT=("brightnessctl")
+
+WM=("feh" "picom" "xmonad" "xmonad-contrib")
+RUNLANCHER=("clipmenu")
+MULTIMEDIA=("vlc")
+LOGINMANAGER=("lightdm" "lightdm-gtk-greeter")
+OFFICE=("libreoffice-fresh" "hunspell" "aspell" "aspell-en")
 TERMINAL=("alacritty" "fish")
 EDITORS=("emacs" "neovim")
-BROWSER=("librewolf")
-FILEMANAGERS=("nemo")
+DOWNLOADER=("aria2")
+FILEMANAGERS=("nemo" "ranger" "nemo-fileroller")
+
+WM_AUR=("polybar")
+RUNLANCHER_AUR=("j4-dmenu-desktop")
+MULTIMEDIA_AUR=("spotify")
+OFFICE_AUR=("aspell-ar")
+BROWSER_AUR=("librewolf-bin")
+
+LOGINMANAGER=("lightdm.service")
 
 GIT=("git")
 COREUTILES=("exa" "bat" "ripgrep")
+
+COREUTILES_AUR=("xcp")
+
+THEMEING_APP=("lxappearance")
+
+THEMEING_APP_AUR=("starship")
+THEME_AUR=("dracula-gtk-theme")
+ICONS_AUR=("dracula-icons-git")
+CURSOR_AUR=("dracula-cursors-git")
+
+HELPER="yay-bin"
+HELPER_CMD="yay"
+echo "We need an AUR helper. It is essential. 1) paru       2) yay"
+read -r -p "What is the AUR helper of your choice? (Default is paru): " ah
+
+if [ $ah -eq 2 ]
+then
+    HELPER="yay-bin"
+    HELPER_CMD="yay"
+fi
+
+if ! command -v $HELPER &> /dev/null
+then
+    echo "It seems that you don't have $HELPER installed, I'll install that for you before continuing."
+	git clone https://aur.archlinux.org/$HELPER.git ~/.srcs/$HELPER
+	(cd ~/.srcs/$HELPER/ && makepkg -si )
+fi
 
 PKGS_Desktop=("Window_Manager" "Run_Lancher" "Multimedia" "Office" "Terminal" "Editors" "Downleader" "File_Manager" "Web_Browser" "Login_Manager" "All" "Finished")
 select choice in ${PKGS_Desktop[@]}
@@ -33,60 +84,165 @@ do
   case $choice in
     Window_Manager)
       DE+=("${WM[@]}")
+      DE_AUR+=("${WM_AUR[@]}")
       echo "$choice, got it. Any others?"
       ;;
     Run_Lancher)
       DE+=("${RUNLANCHER[@]}")
+      DE_AUR+=("${RUNLANCHER_AUR[@]}")
       install_dmenu=$true
       echo "$choice, got it. Any others?"
       ;;
     Multimedia)
       DE+=("${MULTIMEDIA[@]}")
+      DE_AUR+=("${MULTIMEDIA_AUR[@]}")
       echo "$choice, got it. Any others?"
       ;;
     Office)
       DE+=("${OFFICE[@]}")
+      DE_AUR+=("${OFFICE_AUR[@]}")
       echo "$choice, got it. Any others?"
       ;;
     Terminal)
       DE+=("${TERMINAL[@]}")
+      DE_AUR+=("${TERMINAL_AUR[@]}")
       echo "$choice, got it. Any others?"
       ;;
     Editors)
       DE+=("${EDITORS[@]}")
+      DE_AUR+=("${EDITORS_AUR[@]}")
       echo "$choice, got it. Any others?"
       ;;
     Downleader)
       DE+=("${DOWNLOADER[@]}")
+      DE_AUR+=("${DOWNLOADER_AUR[@]}")
       echo "$choice, got it. Any others?"
       ;;
     File_Manager)
       DE+=("${FILEMANAGERS[@]}")
+      DE_AUR+=("${FILEMANAGERS_AUR[@]}")
       echo "$choice, got it. Any others?"
       ;;
     Web_Browser)
-      DE+=("${BROWSERR[@]}")
+      DE_AUR+=("${BROWSER_AUR[@]}")
       echo "$choice, got it. Any others?"
       ;;
     Login_Manager)
       DE+=("${FILEMANAGERS[@]}")
+      DE_AUR+=("${LOGINMANAGER[@]}")
+      SERVS+=("${LOGINMANAGER_SERVS[@]}")
       echo "$choice, got it. Any others?"
       ;;
     All)
       DE+=("${WM[@]}")
+      DE_AUR+=("${WM_AUR[@]}")
       DE+=("${RUNLANCHER[@]}")
       install_dmenu=$true
+      DE_AUR+=("${RUNLANCHER_AUR[@]}")
       DE+=("${MULTIMEDIA[@]}")
+      DE_AUR+=("${MULTIMEDIA_AUR[@]}")
       DE+=("${EDITORS[@]}")
+      DE_AUR+=("${EDITORS_AUR[@]}")
       DE+=("${TERMINAL[@]}")
+      DE_AUR+=("${TERMINAL_AUR[@]}")
       DE+=("${DOWNLOADER[@]}")
+      DE_AUR+=("${DOWNLOADER_AUR[@]}")
       DE+=("${FILEMANAGERS[@]}")
+      DE_AUR+=("${FILEMANAGERS_AUR[@]}")
+      DE_AUR+=("${LOGINMANAGER[@]}")
+      DE_AUR+=("${BROWSER_AUR[@]}")
         break
         ;;
     Finished)
         break
         ;;
     *)
+      echo "Invalid option $REPLY"
+      ;;
+  esac
+done
+clear
+
+PKGS_Servecis=("Sound" "Printing" "Bleutooth" "Laptop" "Samba" "Backlight" "All_Laptop" "All_Desktop" "Finished")
+select choice in ${PKGS_Servecis[@]}
+do
+  case $choice in
+  Sound)
+   DE+=("${SOUND[@]}")
+   DE_AUR+=("${SOUND_AUR[@]}")
+   SERVS+=("${SOUND_SERVS[@]}")
+   echo "$choice, got it. Any others?"
+   ;;
+  Printing)
+   DE+=("${PRINTING[@]}")
+   DE_AUR+=("${PRINTING_AUR[@]}")
+   SERVS+=("${PRINTING_SERVS[@]}")
+   echo "$choice, got it. Any others?"
+   ;;
+  Bleutooth)
+   DE+=("${BLEUTOOTH[@]}")
+   DE_AUR+=("${BLEUTOOTH_AUR[@]}")
+   SERVS+=("${BLEUTOOTH_SERVS[@]}")
+   echo "$choice, got it. Any others?"
+   ;;
+  Laptop)
+   DE+=("${LAPTOP[@]}")
+   DE_AUR+=("${LAPTOP_AUR[@]}")
+   SERVS+=("${LAPTOP_SERVS[@]}")
+   echo "$choice, got it. Any others?"
+   ;;
+  Samba)
+   DE+=("${SAMBA[@]}")
+   DE_AUR+=("${SAMBA_AUR[@]}")
+   SERVS+=("${SAMBA_SERVS[@]}")
+   echo "$choice, got it. Any others?"
+   ;;
+  backlight)
+   DE+=("${BACKLIGHT[@]}")
+   DE_AUR+=("${BACKLIGHT_AUR[@]}")
+   echo "$choice, got it. Any others?"
+   ;;
+  All_Laptop)
+   DE+=("${SOUND[@]}")
+   DE_AUR+=("${SOUND_AUR[@]}")
+   SERVS+=("${SOUND_SERVS[@]}")
+   DE+=("${PRINTING[@]}")
+   DE_AUR+=("${PRINTING_AUR[@]}")
+   SERVS+=("${PRINTING_SERVS[@]}")
+   DE+=("${BLEUTOOTH[@]}")
+   DE_AUR+=("${BLEUTOOTH_AUR[@]}")
+   SERVS+=("${BLEUTOOTH_SERVS[@]}")
+   DE+=("${LAPTOP[@]}")
+   DE_AUR+=("${LAPTOP_AUR[@]}")
+   SERVS+=("${LAPTOP_SERVS[@]}")
+   DE+=("${SAMBA[@]}")
+   DE_AUR+=("${SAMBA_AUR[@]}")
+   SERVS+=("${SAMBA_SERVS[@]}")
+   DE+=("${BACKLIGHT[@]}")
+   DE_AUR+=("${BACKLIGHT_AUR[@]}")
+   break
+   ;;
+  All_Desktop)
+   DE+=("${SOUND[@]}")
+   DE_AUR+=("${SOUND_AUR[@]}")
+   SERVS+=("${SOUND_SERVS[@]}")
+   DE+=("${PRINTING[@]}")
+   DE_AUR+=("${PRINTING_AUR[@]}")
+   SERVS+=("${PRINTING_SERVS[@]}")
+   DE+=("${BLEUTOOTH[@]}")
+   DE_AUR+=("${BLEUTOOTH_AUR[@]}")
+   SERVS+=("${BLEUTOOTH_SERVS[@]}")
+   DE+=("${SAMBA[@]}")
+   DE_AUR+=("${SAMBA_AUR[@]}")
+   SERVS+=("${SAMBA_SERVS[@]}")
+   DE+=("${BACKLIGHT[@]}")
+   DE_AUR+=("${BACKLIGHT_AUR[@]}")
+   break
+   ;;
+  Finished)
+   break
+   ;;
+  *)
       echo "Invalid option $REPLY"
       ;;
   esac
@@ -103,11 +259,13 @@ do
    ;;
   CoreUtiles)
   DE+=("${COREUTILES[@]}")
+  DE_AUR+=("${COREUTILES_AUR[@]}")
   echo "$choice, got it. Any others?"
    ;;
   All)
   DE+=("${GIT[@]}")
   DE+=("${COREUTILES[@]}")
+  DE_AUR+=("${COREUTILES_AUR[@]}")
   break
    ;;
   Finished)
@@ -159,14 +317,10 @@ do
 done
 clear
 
-# enabling the rpm Fusion repository
-sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm -y
-sudo rpm --import https://keys.openpgp.org/vks/v1/by-fingerprint/034F7776EF5E0C613D2F7934D29FBD5F93C0CFC3
-
-sudo dnf config-manager --add-repo https://rpm.librewolf.net
-
-sudo dnf install ${DE[@]} -y
-
+sudo pacman -S ${DE[@]}
+clear
+$HELPER_CMD -S ${DE_AUR[@]}
+clear
 if $install_dmenu
   then
        git clone https://github.com/Haam-z/Dmenu.git ~/tempo/dmenu
@@ -176,11 +330,31 @@ if $install_dmenu
 fi
 clear
 
-git clone --bare https://github.com/Haam-z/DotFiles.git ~/Documents/bare-repo
-git --git-dir=$HOME/Documents/bare-repo/DotFiles.git --work-tree=$HOME checkout -f
+init=$(sudo init --version | awk 'NR==1{printf $1}')
+function serv_status()
+{
+case $init in
+openrc )
+ rc-service $1 enable
+ ;;
+systemd )
+   systemctl enable $1
+ ;;
+esac
+}
+for i in ${SERVS[@]}
+do
+    serv_status $i
+done
+clear
 
-read -r -p "do you want to install fonts 1)no 2)yes (default no): " vf
-case $vf in
+git clone --bare https://github.com/Haam-z/Dot-File.git ~/Documents/bare-repo/DotFiles
+git --git-dir=$HOME/Documents/bare-repo/DotFiles --work-tree=$HOME checkout -f
+cd ~
+
+echo "do you want to install fonts 1)no 2)yes"
+read -r -p "Choose you video card driver(default no): " vid
+case $vid in
 [1])
 sleep 5s
 ;;
@@ -188,7 +362,6 @@ sleep 5s
 echo"installing you fonts you will wait a litel bit"
 git clone https://gitlab.com/haamz/fonts.git ~/tempo/fonts
 sudo cp ~/tempo/fonts/* /usr/share/fonts/
-sleep 5s
 ;;
 [*])
 sleep 5s
